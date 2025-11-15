@@ -6,7 +6,6 @@ let teams = {};
 let userSelections = {}; // Track user selections for remaining games
 let currentFilter = 'all';
 let focusedTeam = null;
-let simulationResults = null; // Store Monte Carlo simulation results
 
 // Initialize the calculator
 function init() {
@@ -17,8 +16,6 @@ function init() {
     renderStandings();
     renderMatchups();
     setupEventListeners();
-    // Run initial simulation
-    runMonteCarloSimulation(10000, true);
   } catch (error) {
     console.error('Error initializing playoff calculator:', error);
     document.getElementById('matchupsContainer').innerHTML =
@@ -146,14 +143,6 @@ function updateFocusedTeamStats() {
 
   document.getElementById('currentSeed').textContent = currentSeed;
   document.getElementById('projectedRecord').textContent = `${team.wins}-${team.losses}`;
-
-  if (simulationResults && simulationResults[focusedTeam]) {
-    const odds = (simulationResults[focusedTeam].playoffAppearances / simulationResults[focusedTeam].totalSimulations * 100).toFixed(1);
-    document.getElementById('playoffOdds').textContent = `${odds}%`;
-    document.getElementById('playoffOdds').style.color = odds >= 50 ? '#28a745' : (odds >= 25 ? '#ffc107' : '#dc3545');
-  } else {
-    document.getElementById('playoffOdds').textContent = '--';
-  }
 }
 
 // Get sorted teams array
@@ -170,7 +159,6 @@ function getSortedTeams() {
 function renderStandings() {
   const container = document.getElementById('standingsTable');
   const sortedTeams = getSortedTeams();
-  const showOdds = simulationResults !== null;
 
   let html = `
     <div class="standings-row header">
@@ -178,7 +166,6 @@ function renderStandings() {
       <div>Team</div>
       <div>Record</div>
       <div>PF</div>
-      ${showOdds ? '<div>Odds</div>' : ''}
     </div>
   `;
 
@@ -187,12 +174,6 @@ function renderStandings() {
     const isPlayoffBound = rank <= 6;
     const playoffClass = isPlayoffBound ? 'playoff-bound' : '';
     const isFocused = team.name === focusedTeam ? 'focused-team' : '';
-
-    let oddsColumn = '';
-    if (showOdds && simulationResults[team.name]) {
-      const odds = (simulationResults[team.name].playoffAppearances / simulationResults[team.name].totalSimulations * 100).toFixed(1);
-      oddsColumn = `<div class="playoff-odds">${odds}%</div>`;
-    }
 
     html += `
       <div class="standings-row ${playoffClass} ${isFocused}">
@@ -203,7 +184,6 @@ function renderStandings() {
         </div>
         <div class="record">${team.wins}-${team.losses}</div>
         <div class="points-for">${team.totalPoints.toFixed(1)}</div>
-        ${oddsColumn}
       </div>
     `;
   });
@@ -263,123 +243,64 @@ function shouldDisplayWeek(weekMatchups, allCompleted) {
   return true;
 }
 
-// Calculate playoff odds impact for a specific matchup outcome
-function calculateMatchupImpact(matchupId, winnerName) {
-  if (!focusedTeam || !simulationResults) return null;
-
-  // Create a copy of userSelections with this matchup added
-  const tempSelections = { ...userSelections, [matchupId]: winnerName };
-
-  // Run a quick simulation with the temporary selections
-  const quickResults = runQuickSimulation(1000, tempSelections);
-
-  if (!quickResults || !quickResults[focusedTeam]) return null;
-
-  // Return the playoff odds for the focused team with this outcome
-  return (quickResults[focusedTeam].playoffAppearances / quickResults[focusedTeam].totalSimulations * 100);
-}
-
-// Run a quick simulation without UI updates (for impact calculation)
-function runQuickSimulation(numSimulations, selectionsOverride = null) {
-  const selections = selectionsOverride || userSelections;
-  const results = {};
-  Object.keys(teams).forEach(teamName => {
-    results[teamName] = {
-      playoffAppearances: 0,
-      totalSimulations: numSimulations,
-      avgSeed: 0,
-      seedTotals: 0
-    };
-  });
-
-  // Get current team strength based on current wins
-  const teamStrength = {};
-  Object.keys(teams).forEach(teamName => {
-    const totalGames = teams[teamName].wins + teams[teamName].losses;
-    const winPct = totalGames > 0 ? teams[teamName].wins / totalGames : 0.5;
-    teamStrength[teamName] = 0.3 + (winPct * 0.4);
-  });
-
-  const remainingMatchups = matchups.filter(m => !m.completed && !selections[m.id]);
-  const fixedMatchups = matchups.filter(m => m.completed || selections[m.id]);
-
-  // Run simulations
-  for (let sim = 0; sim < numSimulations; sim++) {
-    const simTeams = {};
-
-    Object.keys(teams).forEach(teamName => {
-      simTeams[teamName] = { name: teamName, wins: 0, losses: 0, pointsFor: 0, totalPoints: 0 };
-    });
-
-    fixedMatchups.forEach(matchup => {
-      let winner, loser;
-
-      if (matchup.completed) {
-        if (matchup.team1.score > matchup.team2.score) {
-          winner = matchup.team1.name;
-          loser = matchup.team2.name;
-        } else {
-          winner = matchup.team2.name;
-          loser = matchup.team1.name;
-        }
-        simTeams[matchup.team1.name].pointsFor += matchup.team1.score;
-        simTeams[matchup.team2.name].pointsFor += matchup.team2.score;
-        simTeams[matchup.team1.name].totalPoints += matchup.team1.score;
-        simTeams[matchup.team2.name].totalPoints += matchup.team2.score;
-      } else if (selections[matchup.id]) {
-        winner = selections[matchup.id];
-        loser = winner === matchup.team1.name ? matchup.team2.name : matchup.team1.name;
-        simTeams[winner].totalPoints += 110;
-        simTeams[loser].totalPoints += 95;
-      }
-
-      simTeams[winner].wins++;
-      simTeams[loser].losses++;
-    });
-
-    remainingMatchups.forEach(matchup => {
-      const team1Strength = teamStrength[matchup.team1.name];
-      const team2Strength = teamStrength[matchup.team2.name];
-      const totalStrength = team1Strength + team2Strength;
-      const team1WinProb = team1Strength / totalStrength;
-
-      const rand = Math.random();
-      const winner = rand < team1WinProb ? matchup.team1.name : matchup.team2.name;
-      const loser = winner === matchup.team1.name ? matchup.team2.name : matchup.team1.name;
-
-      simTeams[winner].wins++;
-      simTeams[loser].losses++;
-
-      // Add projected points for simulated matchups
-      simTeams[winner].totalPoints += 110;
-      simTeams[loser].totalPoints += 95;
-    });
-
-    const sortedSimTeams = Object.values(simTeams).sort((a, b) => {
-      if (b.wins !== a.wins) {
-        return b.wins - a.wins;
-      }
-      return b.totalPoints - a.totalPoints;
-    });
-
-    sortedSimTeams.forEach((team, index) => {
-      const seed = index + 1;
-      if (seed <= 6) {
-        results[team.name].playoffAppearances++;
-      }
-      results[team.name].seedTotals += seed;
-    });
+// Calculate which matchup outcome helps the focused team
+function calculateMatchupImpact(matchup) {
+  if (!focusedTeam || matchup.completed || userSelections[matchup.id]) {
+    return { team1Class: '', team2Class: '' };
   }
 
-  Object.keys(results).forEach(teamName => {
-    results[teamName].avgSeed = (results[teamName].seedTotals / numSimulations).toFixed(1);
-  });
+  // If the focused team is in this matchup, don't show helpful/harmful
+  if (matchup.team1.name === focusedTeam || matchup.team2.name === focusedTeam) {
+    return { team1Class: '', team2Class: '' };
+  }
 
-  return results;
+  // Determine if each team winning would help or hurt the focused team
+  // A team losing is GOOD for focused team if that team is ahead or tied
+  // A team losing is BAD for focused team if that team is behind (and you need them to beat someone ahead)
+
+  const team1WinsRank = calculateCurrentRank(matchup.team1.name);
+  const team2WinsRank = calculateCurrentRank(matchup.team2.name);
+  const focusedRank = calculateCurrentRank(focusedTeam);
+
+  // Simple heuristic:
+  // - If team is ahead of or tied with focused team, them LOSING is helpful
+  // - If team is behind focused team, them WINNING might help if they're playing someone ahead
+
+  let team1Class = '';
+  let team2Class = '';
+
+  // Check if team1 is a threat (ahead of or tied with focused team)
+  const team1IsAhead = team1WinsRank <= focusedRank;
+  // Check if team2 is a threat
+  const team2IsAhead = team2WinsRank <= focusedRank;
+
+  if (team1IsAhead && !team2IsAhead) {
+    // Team1 is ahead, you want team2 to win
+    team2Class = 'helpful-choice';
+    team1Class = 'harmful-choice';
+  } else if (team2IsAhead && !team1IsAhead) {
+    // Team2 is ahead, you want team1 to win
+    team1Class = 'helpful-choice';
+    team2Class = 'harmful-choice';
+  } else if (team1IsAhead && team2IsAhead) {
+    // Both ahead - want the one further ahead to lose (helps you more)
+    if (team1WinsRank < team2WinsRank) {
+      team2Class = 'helpful-choice';
+      team1Class = 'harmful-choice';
+    } else if (team2WinsRank < team1WinsRank) {
+      team1Class = 'helpful-choice';
+      team2Class = 'harmful-choice';
+    }
+  }
+
+  return { team1Class, team2Class };
 }
 
-// Cache for matchup impact calculations
-let matchupImpactCache = {};
+// Calculate current rank for a team
+function calculateCurrentRank(teamName) {
+  const sortedTeams = getSortedTeams();
+  return sortedTeams.findIndex(t => t.name === teamName) + 1;
+}
 
 // Render matchups for a specific week
 function renderWeekMatchups(weekMatchups) {
@@ -390,55 +311,13 @@ function renderWeekMatchups(weekMatchups) {
     const team1Selected = !completed && userSelections[matchup.id] === matchup.team1.name;
     const team2Selected = !completed && userSelections[matchup.id] === matchup.team2.name;
 
-    // Calculate impact if a team is focused and this is a remaining matchup
-    let team1HelpfulClass = '';
-    let team2HelpfulClass = '';
-
-    if (focusedTeam && !completed && !userSelections[matchup.id] && simulationResults) {
-      // Get current odds for focused team
-      const currentOdds = simulationResults[focusedTeam]
-        ? (simulationResults[focusedTeam].playoffAppearances / simulationResults[focusedTeam].totalSimulations * 100)
-        : 0;
-
-      // Use cache key to avoid recalculating
-      const cacheKey = `${focusedTeam}_${matchup.id}_${JSON.stringify(userSelections)}`;
-
-      if (!matchupImpactCache[cacheKey]) {
-        // Calculate odds if team1 wins
-        const team1WinOdds = calculateMatchupImpact(matchup.id, matchup.team1.name);
-        // Calculate odds if team2 wins
-        const team2WinOdds = calculateMatchupImpact(matchup.id, matchup.team2.name);
-
-        matchupImpactCache[cacheKey] = {
-          team1Impact: team1WinOdds !== null ? team1WinOdds - currentOdds : 0,
-          team2Impact: team2WinOdds !== null ? team2WinOdds - currentOdds : 0
-        };
-      }
-
-      const impact1 = matchupImpactCache[cacheKey].team1Impact;
-      const impact2 = matchupImpactCache[cacheKey].team2Impact;
-
-      // Determine which outcome is better for the focused team
-      // Only highlight if there's a meaningful difference (>1% threshold)
-      const impactDiff = Math.abs(impact1 - impact2);
-
-      if (impactDiff > 1) {
-        if (impact1 > impact2) {
-          // Team1 winning is better for focused team
-          team1HelpfulClass = 'helpful-choice';
-          team2HelpfulClass = 'harmful-choice';
-        } else {
-          // Team2 winning is better for focused team
-          team1HelpfulClass = 'harmful-choice';
-          team2HelpfulClass = 'helpful-choice';
-        }
-      }
-    }
+    // Calculate helpful/harmful highlighting
+    const impact = calculateMatchupImpact(matchup);
 
     return `
       <div class="matchup-card ${completed ? 'completed' : ''}" data-matchup-id="${matchup.id}">
         <div class="matchup-teams">
-          <div class="team ${team1Winner ? 'winner' : ''} ${team2Winner ? 'loser' : ''} ${team1Selected ? 'selected' : ''} ${team1HelpfulClass}"
+          <div class="team ${team1Winner ? 'winner' : ''} ${team2Winner ? 'loser' : ''} ${team1Selected ? 'selected' : ''} ${impact.team1Class}"
                data-team="${matchup.team1.name}">
             <span class="team-score ${!matchup.team1.score ? 'no-score' : ''}">
               ${matchup.team1.score ? matchup.team1.score.toFixed(2) : 'TBD'}
@@ -446,7 +325,7 @@ function renderWeekMatchups(weekMatchups) {
             <span class="team-name-match">${matchup.team1.name}</span>
           </div>
           <div class="vs-divider">VS</div>
-          <div class="team ${team2Winner ? 'winner' : ''} ${team1Winner ? 'loser' : ''} ${team2Selected ? 'selected' : ''} ${team2HelpfulClass}"
+          <div class="team ${team2Winner ? 'winner' : ''} ${team1Winner ? 'loser' : ''} ${team2Selected ? 'selected' : ''} ${impact.team2Class}"
                data-team="${matchup.team2.name}">
             <span class="team-name-match">${matchup.team2.name}</span>
             <span class="team-score ${!matchup.team2.score ? 'no-score' : ''}">
@@ -468,164 +347,21 @@ function renderWeekMatchups(weekMatchups) {
   }).join('');
 }
 
-// Monte Carlo Simulation - Run 10,000 simulations of remaining games
-function runMonteCarloSimulation(numSimulations = 10000, silent = false) {
-  const btn = document.getElementById('runSimulationBtn');
-  const indicator = document.getElementById('simulatingIndicator');
-
-  if (!silent) {
-    btn.disabled = true;
-    btn.textContent = 'Running...';
-  }
-
-  // Show loading indicator briefly
-  indicator.style.display = 'flex';
-
-  // Use setTimeout to allow UI to update
-  setTimeout(() => {
-    const results = {};
-    Object.keys(teams).forEach(teamName => {
-      results[teamName] = {
-        playoffAppearances: 0,
-        totalSimulations: numSimulations,
-        avgSeed: 0,
-        seedTotals: 0
-      };
-    });
-
-    // Get current team strength based on current wins (for weighted probability)
-    const teamStrength = {};
-    Object.keys(teams).forEach(teamName => {
-      // Calculate strength: base 50% + bonus based on current win percentage
-      const totalGames = teams[teamName].wins + teams[teamName].losses;
-      const winPct = totalGames > 0 ? teams[teamName].wins / totalGames : 0.5;
-      teamStrength[teamName] = 0.3 + (winPct * 0.4); // Range: 30% to 70%
-    });
-
-    // Get remaining matchups
-    const remainingMatchups = matchups.filter(m => !m.completed && !userSelections[m.id]);
-    const fixedMatchups = matchups.filter(m => m.completed || userSelections[m.id]);
-
-    // Run simulations
-    for (let sim = 0; sim < numSimulations; sim++) {
-      const simTeams = {};
-
-      // Initialize with base stats from completed and user-selected games
-      Object.keys(teams).forEach(teamName => {
-        simTeams[teamName] = { name: teamName, wins: 0, losses: 0, pointsFor: 0, totalPoints: 0 };
-      });
-
-      // Process completed and user-selected games
-      fixedMatchups.forEach(matchup => {
-        let winner, loser;
-
-        if (matchup.completed) {
-          if (matchup.team1.score > matchup.team2.score) {
-            winner = matchup.team1.name;
-            loser = matchup.team2.name;
-          } else {
-            winner = matchup.team2.name;
-            loser = matchup.team1.name;
-          }
-          simTeams[matchup.team1.name].pointsFor += matchup.team1.score;
-          simTeams[matchup.team2.name].pointsFor += matchup.team2.score;
-          simTeams[matchup.team1.name].totalPoints += matchup.team1.score;
-          simTeams[matchup.team2.name].totalPoints += matchup.team2.score;
-        } else if (userSelections[matchup.id]) {
-          winner = userSelections[matchup.id];
-          loser = winner === matchup.team1.name ? matchup.team2.name : matchup.team1.name;
-          simTeams[winner].totalPoints += 110;
-          simTeams[loser].totalPoints += 95;
-        }
-
-        simTeams[winner].wins++;
-        simTeams[loser].losses++;
-      });
-
-      // Simulate remaining matchups with weighted probabilities
-      remainingMatchups.forEach(matchup => {
-        const team1Strength = teamStrength[matchup.team1.name];
-        const team2Strength = teamStrength[matchup.team2.name];
-
-        // Normalize probabilities so they sum to 1
-        const totalStrength = team1Strength + team2Strength;
-        const team1WinProb = team1Strength / totalStrength;
-
-        const rand = Math.random();
-        const winner = rand < team1WinProb ? matchup.team1.name : matchup.team2.name;
-        const loser = winner === matchup.team1.name ? matchup.team2.name : matchup.team1.name;
-
-        simTeams[winner].wins++;
-        simTeams[loser].losses++;
-
-        // Add projected points for simulated matchups
-        simTeams[winner].totalPoints += 110;
-        simTeams[loser].totalPoints += 95;
-      });
-
-      // Sort teams and determine playoff teams
-      const sortedSimTeams = Object.values(simTeams).sort((a, b) => {
-        if (b.wins !== a.wins) {
-          return b.wins - a.wins;
-        }
-        return b.totalPoints - a.totalPoints;
-      });
-
-      // Top 6 make playoffs
-      sortedSimTeams.forEach((team, index) => {
-        const seed = index + 1;
-        if (seed <= 6) {
-          results[team.name].playoffAppearances++;
-        }
-        results[team.name].seedTotals += seed;
-      });
-    }
-
-    // Calculate average seeds
-    Object.keys(results).forEach(teamName => {
-      results[teamName].avgSeed = (results[teamName].seedTotals / numSimulations).toFixed(1);
-    });
-
-    simulationResults = results;
-    document.getElementById('simulationNote').style.display = 'block';
-    renderStandings();
-
-    // Hide loading indicator
-    setTimeout(() => {
-      indicator.style.display = 'none';
-    }, silent ? 300 : 100);
-
-    if (!silent) {
-      btn.disabled = false;
-      btn.textContent = 'Re-run Simulation';
-    }
-  }, silent ? 0 : 50);
-}
-
 // Setup event listeners
 function setupEventListeners() {
   // Reset button
   document.getElementById('resetBtn').addEventListener('click', () => {
     userSelections = {};
-    matchupImpactCache = {}; // Clear cache on reset
     calculateStandings();
     renderStandings();
     renderMatchups();
-    // Auto-run simulation after reset
-    runMonteCarloSimulation(10000, true);
-  });
-
-  // Run simulation button (manual re-run)
-  document.getElementById('runSimulationBtn').addEventListener('click', () => {
-    runMonteCarloSimulation();
   });
 
   // Team selector
   document.getElementById('focusTeam').addEventListener('change', (e) => {
     focusedTeam = e.target.value || null;
-    matchupImpactCache = {}; // Clear cache when team changes
     renderStandings();
-    renderMatchups(); // Re-render matchups to show helpful choices
+    renderMatchups();
   });
 
   // Week filter
@@ -664,13 +400,9 @@ function setupEventListeners() {
       userSelections[matchupId] = teamName;
     }
 
-    matchupImpactCache = {}; // Clear cache when selection changes
     calculateStandings();
     renderStandings();
     renderMatchups();
-
-    // Auto-run simulation after selection
-    runMonteCarloSimulation(10000, true);
   });
 }
 
