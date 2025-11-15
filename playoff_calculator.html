@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Playoff Calculator - E-sports</title>
+  <link rel="stylesheet" href="static/styles.css">
+  <link rel="stylesheet" href="static/playoff_calculator.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <h2>Sports Co-op</h2>
+      <ul class="nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="playoff_calculator.html">Playoff Calculator</a></li>
+        <li><a href="#">Products</a></li>
+        <li><a href="#">Membership</a></li>
+        <li><a href="#">Support Us</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="playoff-container">
+    <header class="playoff-header">
+      <h1>Fantasy Playoff Calculator</h1>
+      <p class="subtitle">Select winners for remaining matchups to see live playoff odds</p>
+      <div class="header-controls">
+        <div class="team-selector-container">
+          <label for="focusTeam">Focus on Team:</label>
+          <select id="focusTeam" class="team-selector">
+            <option value="">All Teams</option>
+          </select>
+        </div>
+        <button id="resetBtn" class="reset-btn">Reset All Selections</button>
+        <button id="runSimulationBtn" class="simulation-btn">Re-run Simulation</button>
+      </div>
+      <div id="simulatingIndicator" class="simulating-indicator" style="display: none;">
+        <span class="spinner"></span>
+        <span>Simulating 10,000 scenarios...</span>
+      </div>
+      <div id="focusTeamStats" class="focus-team-stats" style="display: none;">
+        <div class="stat-box">
+          <div class="stat-label">Playoff Odds</div>
+          <div class="stat-value" id="playoffOdds">--</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Current Seed</div>
+          <div class="stat-value" id="currentSeed">--</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Projected Record</div>
+          <div class="stat-value" id="projectedRecord">--</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-content">
+      <!-- Left side: Standings -->
+      <div class="standings-panel">
+        <h2>Current Standings</h2>
+        <div class="standings-info">
+          <p class="info-text">Top 6 teams make playoffs</p>
+          <p class="tiebreaker-text">Tiebreaker: 1. Win-Loss Record 2. Points For</p>
+        </div>
+        <div id="standingsTable" class="standings-table">
+          <!-- Populated by JavaScript -->
+        </div>
+        <div class="simulation-note" id="simulationNote" style="display: none;">
+          <p><strong>Playoff Odds</strong> shown based on 10,000 simulations • Updates automatically when you select matchup winners</p>
+        </div>
+      </div>
+
+      <!-- Right side: Matchups -->
+      <div class="matchups-panel">
+        <h2>Season Matchups</h2>
+        <div class="week-filter">
+          <label for="weekFilter">Filter by week:</label>
+          <select id="weekFilter">
+            <option value="all">All Weeks</option>
+            <option value="completed">Completed</option>
+            <option value="remaining">Remaining Only</option>
+          </select>
+        </div>
+        <div id="matchupsContainer" class="matchups-container">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/matchup_data.js"></script>
+  <script src="js/playoff_calculator.js"></script>
+</body>
+</html>

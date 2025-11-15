@@ -1,0 +1,85 @@
+week,team1_name,team1_score,team1_projected,team2_name,team2_score,team2_projected
+1,Fightin’ Felons,120.36,117.64,D’Ass,90.22,104.02
+1,The Koozies,98.02,110.82,BANG! THE ASSMAN,123.06,103.8
+1,Franklin Twangle,91.24,110.92,Cacio e Pepe,87.82,110.96
+1,Swamp Chickens,107.82,110.15,Sacks and the Pity,101.82,103.33
+1,Mediocre McCorkles,87.68,102.55,McChicken with Cheese,91.02,104.83
+1,Степан-O,93.68,104.25,White Ford Bronco,64.38,94.31
+2,Fightin’ Felons,87.22,107.04,Franklin Twangle,81.94,113.61
+2,The Koozies,113.58,114.31,Cacio e Pepe,114.54,97.67
+2,BANG! THE ASSMAN,137.8,108.61,D’Ass,119.7,106.56
+2,Swamp Chickens,101.2,114.12,White Ford Bronco,87.78,100.78
+2,Mediocre McCorkles,106.3,103.25,Sacks and the Pity,118.5,107.82
+2,McChicken with Cheese,86.94,110.33,Степан-O,77.64,110.47
+3,Fightin’ Felons,97.82,114.25,Mediocre McCorkles,128.02,101.89
+3,The Koozies,94.36,105.91,White Ford Bronco,104.72,104.54
+3,Franklin Twangle,113.22,113.59,Sacks and the Pity,85.6,104.21
+3,BANG! THE ASSMAN,139.92,113.09,Степан-O,140.94,105.68
+3,D’Ass,94.98,105.42,McChicken with Cheese,99.44,105.78
+3,Swamp Chickens,78.16,95.66,Cacio e Pepe,108.62,105.97
+4,Fightin’ Felons,120.96,99.43,BANG! THE ASSMAN,113.68,110.36
+4,The Koozies,116.1,107.41,Степан-O,117.5,107.54
+4,Franklin Twangle,73.34,96.34,Swamp Chickens,113.3,91.33
+4,D’Ass,105.72,90.09,Sacks and the Pity,126.82,98.53
+4,Mediocre McCorkles,135.86,105.6,White Ford Bronco,122.48,98.71
+4,McChicken with Cheese,106.42,102.24,Cacio e Pepe,91.88,102.36
+5,Fightin’ Felons,94.32,100.76,The Koozies,157.82,100.11
+5,Franklin Twangle,98.68,99.64,White Ford Bronco,120.02,86.07
+5,BANG! THE ASSMAN,107.06,101.73,Sacks and the Pity,103.04,87.43
+5,D’Ass,96.98,95.31,Mediocre McCorkles,126.06,104.14
+5,Swamp Chickens,104.3,110.21,McChicken with Cheese,107.72,102.78
+5,Степан-O,98.2,85.29,Cacio e Pepe,124.9,105.75
+6,Fightin’ Felons,81.7,104.41,Степан-O,91.82,93.51
+6,The Koozies,140.28,107.11,McChicken with Cheese,101.12,102.02
+6,Franklin Twangle,63.26,96.43,BANG! THE ASSMAN,105.3,98.34
+6,D’Ass,55.3,94.55,Swamp Chickens,132.26,108.02
+6,Mediocre McCorkles,128.64,105.6,Cacio e Pepe,101.48,99.59
+6,Sacks and the Pity,124.34,99.34,White Ford Bronco,82.1,92.24
+7,Fightin’ Felons,101.56,99.23,White Ford Bronco,130.04,99.98
+7,The Koozies,105.04,108.99,D’Ass,104.92,81.68
+7,Franklin Twangle,136.26,88.21,McChicken with Cheese,116.66,108.72
+7,BANG! THE ASSMAN,80.02,94.56,Mediocre McCorkles,105.12,104.05
+7,Swamp Chickens,103.78,105.27,Степан-O,137.14,91.49
+7,Sacks and the Pity,98.44,90.34,Cacio e Pepe,109.28,105.54
+8,Fightin’ Felons,129.32,99.78,Sacks and the Pity,116.08,95.85
+8,The Koozies,101.36,95.05,Swamp Chickens,113.62,102.32
+8,Franklin Twangle,98.68,94.17,Mediocre McCorkles,103.08,86.02
+8,BANG! THE ASSMAN,103.56,87.63,McChicken with Cheese,96.72,111.02
+8,D’Ass,65.22,77.57,Степан-O,92.06,79.04
+8,White Ford Bronco,108.8,98.97,Cacio e Pepe,114.44,106.36
+9,Fightin’ Felons,130.1,98.45,Sacks and the Pity,109.0,95.75
+9,The Koozies,104.5,102.83,Swamp Chickens,131.74,103.46
+9,Franklin Twangle,112.72,84.99,Mediocre McCorkles,119.7,102.62
+9,BANG! THE ASSMAN,101.36,110.39,McChicken with Cheese,109.4,113.17
+9,D’Ass,130.84,94.28,Степан-O,79.06,100.27
+9,White Ford Bronco,80.82,89.56,Cacio e Pepe,94.68,101.43
+10,Fightin’ Felons,84.44,109.14,Swamp Chickens,158.0,115.57
+10,The Koozies,131.4,100.31,Sacks and the Pity,84.8,100.45
+10,Franklin Twangle,80.7,98.64,D’Ass,123.18,101.85
+10,BANG! THE ASSMAN,92.44,117.54,Cacio e Pepe,102.0,93.23
+10,Mediocre McCorkles,165.72,108.36,Степан-O,128.02,97.53
+10,McChicken with Cheese,138.3,110.84,White Ford Bronco,88.44,88.71
+11,Fightin’ Felons,0.0,112.96,McChicken with Cheese,0.0,117.16
+11,The Koozies,0.0,110.97,Franklin Twangle,0.0,90.14
+11,BANG! THE ASSMAN,0.0,110.91,White Ford Bronco,0.0,98.28
+11,D’Ass,0.0,91.07,Cacio e Pepe,0.0,107.1
+11,Swamp Chickens,0.0,115.5,Mediocre McCorkles,0.0,99.5
+11,Sacks and the Pity,0.0,99.18,Степан-O,0.0,96.31
+12,Fightin’ Felons,0.0,104.42,Mediocre McCorkles,0.0,74.35
+12,The Koozies,0.0,112.25,White Ford Bronco,0.0,93.99
+12,Franklin Twangle,0.0,71.11,Sacks and the Pity,0.0,72.39
+12,BANG! THE ASSMAN,0.0,114.89,Степан-O,0.0,91.61
+12,D’Ass,0.0,77.83,McChicken with Cheese,0.0,101.45
+12,Swamp Chickens,0.0,71.78,Cacio e Pepe,0.0,108.21
+13,Fightin’ Felons,0.0,111.62,Franklin Twangle,0.0,97.28
+13,The Koozies,0.0,109.82,Cacio e Pepe,0.0,103.66
+13,BANG! THE ASSMAN,0.0,120.04,D’Ass,0.0,89.42
+13,Swamp Chickens,0.0,102.47,White Ford Bronco,0.0,89.83
+13,Mediocre McCorkles,0.0,95.42,Sacks and the Pity,0.0,98.19
+13,McChicken with Cheese,0.0,113.84,Степан-O,0.0,92.44
+14,Fightin’ Felons,0.0,109.03,Cacio e Pepe,0.0,102.87
+14,The Koozies,0.0,77.24,Mediocre McCorkles,0.0,81.04
+14,Franklin Twangle,0.0,90.5,Степан-O,0.0,92.85
+14,BANG! THE ASSMAN,0.0,105.69,Swamp Chickens,0.0,97.59
+14,D’Ass,0.0,61.21,White Ford Bronco,0.0,91.47
+14,McChicken with Cheese,0.0,84.27,Sacks and the Pity,0.0,81.96
